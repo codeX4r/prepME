@@ -1,0 +1,82 @@
+
+Name: Rahul Sharma
+
+Education:
+B.Tech in Computer Science Engineering
+AKTU University
+CGPA: 8.1
+
+Technical Skills:
+- JavaScript
+- TypeScript
+- React.js
+- Node.js
+- Express.js
+- MongoDB
+- SQL
+- Git
+- REST APIs
+- Docker (Beginner)
+
+Projects:
+
+1. E-Commerce Web Application
+- Built full stack MERN application
+- Implemented JWT authentication and protected routes
+- Added Razorpay payment integration
+- Designed responsive frontend using React.js
+
+2. Student Attendance Management System
+- Developed backend APIs using Express.js
+- Used MongoDB for attendance storage
+- Implemented face recognition using OpenCV
+- Generated attendance reports automatically
+
+Experience:
+
+Frontend Developer Intern - TechNova
+Duration: 6 Months
+
+Responsibilities:
+- Built reusable React.js components
+- Optimized frontend performance and reduced loading time
+- Collaborated with backend developers for API integration
+- Improved mobile responsiveness of dashboard pages
+
+Certifications:
+- AWS Cloud Practitioner
+- Meta Frontend Developer Certificate
+
+
+const selfDescription = 
+I am a computer science student focused on full stack web development and backend engineering. I enjoy building scalable and practical applications that solve real-world problems. I have hands-on experience with React.js, Node.js, MongoDB, and REST APIs through internships and personal projects. I am comfortable working in team environments, adapting to new technologies, and improving application performance. My goal is to become a strong software engineer with expertise in scalable system design and modern web technologies.
+
+
+
+Job Role: Junior Full Stack Developer
+
+Responsibilities:
+- Develop and maintain full stack web applications
+- Build responsive frontend interfaces using React.js
+- Create backend APIs using Node.js and Express.js
+- Work with SQL and NoSQL databases
+- Implement authentication and authorization systems
+- Collaborate with UI/UX designers and backend developers
+- Optimize application performance and scalability
+
+Required Skills:
+- Strong knowledge of JavaScript and React.js
+- Experience with Node.js and Express.js
+- Understanding of REST APIs
+- Familiarity with MongoDB or SQL databases
+- Knowledge of Git version control
+- Basic understanding of cloud deployment
+
+Preferred Qualifications:
+- Experience with Docker
+- Knowledge of authentication systems like JWT
+- Understanding of responsive web design
+- Good problem-solving and communication skills
+
+Experience Level:
+0-2 Years

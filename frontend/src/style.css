@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* =========================================
+   Minimal Premium Scrollbar (For components)
+========================================= */
+
+.minimal-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    transition: background 0.2s ease;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.45);
+}
+
+/* Firefox */
+.minimal-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    scroll-behavior: smooth;
+}
+
+/* =========================================
+   Global Scrollbar Hiding (Poori web-app ke liye)
+========================================= */
+html,
+body,
+#root {
+    background: #0a0f1e;
+    margin: 0;
+    min-height: 100%;
+}
+
+/* Utility: hide scrollbars when intentionally needed */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}

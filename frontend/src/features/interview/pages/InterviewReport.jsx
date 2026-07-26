@@ -192,7 +192,7 @@ export default function InterviewReport() {
 
     const NAV_ITEMS = [
         { id: "technical", label: "Technical", fullLabel: "Technical Questions", icon: "⌨️", count: data.technicalQuestion?.length || 0 },
-        { id: "behavioral", label: "Behavioral", fullLabel: "Behavioral Questions", icon: "🧠", count: data.behaviourialQuestion?.length || 0 },
+        { id: "behavioral", label: "Behavioral", fullLabel: "Behavioral Questions", icon: "🧠", count: data.behavioralQuestion?.length || 0 },
         { id: "roadmap", label: "Roadmap", fullLabel: "Road Map", icon: "🗺️", count: data.preparationPlan?.length || 0 }
     ];
 
@@ -283,7 +283,7 @@ export default function InterviewReport() {
                         {activeNav === "technical" && data.technicalQuestion?.map((q, i) => (
                             <QuestionCard key={i} item={q} index={i} type="technical" />
                         ))}
-                        {activeNav === "behavioral" && data.behaviourialQuestion?.map((q, i) => (
+                        {activeNav === "behavioral" && data.behavioralQuestion?.map((q, i) => (
                             <QuestionCard key={i} item={q} index={i} type="behavioral" />
                         ))}
                         {activeNav === "roadmap" && data.preparationPlan?.map((item, i) => {

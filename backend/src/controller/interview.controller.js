@@ -1,27 +1,40 @@
-const pdfParse = require("pdf-parse")
+const { PDFParse } = require("pdf-parse")
 
 const interviewReportModel = require("../model/interviewReport.model.js")
 const generateInterviewReport = require("../services/ai.service.js")
 
-const normalizeInterviewReportData = (interviewReportByAi = {}) => {
-    const normalizePreparationPlan = (plan) => {
-        if (!plan || typeof plan !== "object") {
-            return {
-                day: undefined,
-                focus: undefined,
-                task: undefined
-            }
-        }
+const MAX_JOB_DESCRIPTION_LENGTH = 5000
+const MAX_SELF_DESCRIPTION_LENGTH = 1000
 
-        const tasks = Array.isArray(plan.tasks) ? plan.tasks.filter(Boolean) : []
+/**
+ * Extracts plain text from a PDF buffer using pdf-parse v2's class-based API.
+ * Always destroys the parser instance to release worker resources.
+ */
+const extractTextFromPdf = async (buffer) => {
+    const parser = new PDFParse({ data: buffer })
+    try {
+        const result = await parser.getText()
+        return result.text || ""
+    } finally {
+        await parser.destroy()
+    }
+}
 
-        return {
-            day: plan.day,
-            focus: plan.focus,
-            task: plan.task || tasks.join(", ") || undefined
-        }
+const normalizePreparationPlan = (plan) => {
+    if (!plan || typeof plan !== "object") {
+        return { day: undefined, focus: undefined, task: undefined }
     }
 
+    const tasks = Array.isArray(plan.tasks) ? plan.tasks.filter(Boolean) : []
+
+    return {
+        day: plan.day,
+        focus: plan.focus,
+        task: plan.task || tasks.join(", ") || undefined
+    }
+}
+
+const normalizeInterviewReportData = (interviewReportByAi = {}) => {
     return {
         ...interviewReportByAi,
         technicalQuestion: Array.isArray(interviewReportByAi.technicalQuestions)
@@ -43,11 +56,11 @@ const validateInterviewRequest = ({ jobDescription, selfDescription }) => {
     if (!jobDescription || typeof jobDescription !== "string" || !jobDescription.trim()) {
         return "Job description is required."
     }
-    if (jobDescription.trim().length > 5000) {
-        return "Job description must be under 5000 characters."
+    if (jobDescription.trim().length > MAX_JOB_DESCRIPTION_LENGTH) {
+        return `Job description must be under ${MAX_JOB_DESCRIPTION_LENGTH} characters.`
     }
-    if (selfDescription && typeof selfDescription === "string" && selfDescription.trim().length > 1000) {
-        return "Self description must be under 1000 characters."
+    if (selfDescription && typeof selfDescription === "string" && selfDescription.trim().length > MAX_SELF_DESCRIPTION_LENGTH) {
+        return `Self description must be under ${MAX_SELF_DESCRIPTION_LENGTH} characters.`
     }
     return ""
 }
@@ -92,9 +105,9 @@ const taskMatchesSkill = (taskText, skillText) => {
 
     if (skillWords.every((word) => taskSet.has(word))) return true
 
-    const matchedWords = skillWords.filter((skillWord) => {
-        return taskWords.some((taskWord) => taskWord === skillWord || taskWord.includes(skillWord) || skillWord.includes(taskWord))
-    })
+    const matchedWords = skillWords.filter((skillWord) =>
+        taskWords.some((taskWord) => taskWord === skillWord || taskWord.includes(skillWord) || skillWord.includes(taskWord))
+    )
 
     // Require at least half of the skill words to match, with a minimum of 1.
     return matchedWords.length >= Math.max(1, Math.ceil(skillWords.length / 2))
@@ -102,15 +115,11 @@ const taskMatchesSkill = (taskText, skillText) => {
 
 const applySkillGapReduction = (planItem, skillGaps) => {
     const combinedText = `${planItem.focus || ""} ${planItem.task || ""}`
-    return skillGaps.map((gap) => {
-        if (taskMatchesSkill(combinedText, gap.skill)) {
-            return {
-                ...gap,
-                severity: reduceSkillSeverity(gap.severity)
-            }
-        }
-        return gap
-    })
+    return skillGaps.map((gap) =>
+        taskMatchesSkill(combinedText, gap.skill)
+            ? { ...gap, severity: reduceSkillSeverity(gap.severity) }
+            : gap
+    )
 }
 
 const generateReportInterviewController = async (req, res) => {
@@ -133,8 +142,7 @@ const generateReportInterviewController = async (req, res) => {
 
         let resumeText
         try {
-            const parsed = await pdfParse(resume.buffer)
-            resumeText = parsed?.text || ""
+            resumeText = await extractTextFromPdf(resume.buffer)
         } catch (error) {
             console.error("Resume parsing failed:", error)
             return res.status(400).json({
@@ -172,17 +180,17 @@ const generateReportInterviewController = async (req, res) => {
             ...normalizedInterviewReport
         })
 
-        res.status(201).json({
+        return res.status(201).json({
             message: "Interview report generated successfully",
             interviewReport
         })
     } catch (error) {
         console.error("generateReportInterviewController error:", error)
-        res.status(500).json({ message: "Failed to generate interview report due to server error." })
+        return res.status(500).json({ message: "Failed to generate interview report due to server error." })
     }
 }
 
-const getInterviewReportById = async function (req, res) {
+const getInterviewReportById = async (req, res) => {
     try {
         const { interviewId } = req.params
 
@@ -198,11 +206,11 @@ const getInterviewReportById = async function (req, res) {
         })
     } catch (error) {
         console.error("getInterviewReportById error:", error)
-        res.status(500).json({ message: "Failed to fetch the interview report." })
+        return res.status(500).json({ message: "Failed to fetch the interview report." })
     }
 }
 
-const getAllInterviewReports = async function (req, res) {
+const getAllInterviewReports = async (req, res) => {
     try {
         const interviewReports = await interviewReportModel
             .find({ user: req.user.id })
@@ -212,11 +220,11 @@ const getAllInterviewReports = async function (req, res) {
         return res.status(200).json({ interviewReports })
     } catch (error) {
         console.error("getAllInterviewReports error:", error)
-        res.status(500).json({ message: "Failed to fetch interview reports." })
+        return res.status(500).json({ message: "Failed to fetch interview reports." })
     }
 }
 
-const updateRoadmapProgress = async function (req, res) {
+const updateRoadmapProgress = async (req, res) => {
     try {
         const { interviewId, day } = req.params
         const { status, completedAt, estimatedTime } = req.body
@@ -227,35 +235,37 @@ const updateRoadmapProgress = async function (req, res) {
             return res.status(404).json({ message: "Interview report not found." })
         }
 
-        const planIndex = interviewReport.preparationPlan.findIndex(p => String(p.day) === String(day) || p.day === Number(day))
+        const planIndex = interviewReport.preparationPlan.findIndex(
+            (p) => String(p.day) === String(day) || p.day === Number(day)
+        )
 
         if (planIndex === -1) {
             return res.status(404).json({ message: "Roadmap day not found." })
         }
 
-        const currentStatus = interviewReport.preparationPlan[planIndex].status
+        const planItem = interviewReport.preparationPlan[planIndex]
+        const currentStatus = planItem.status
 
         // Once a task is completed, it cannot be reverted.
-        if (currentStatus === 'completed' && status && status !== 'completed') {
-            return res.status(400).json({ message: 'Completed roadmap days cannot be undone.' })
+        if (currentStatus === "completed" && status && status !== "completed") {
+            return res.status(400).json({ message: "Completed roadmap days cannot be undone." })
         }
 
         // Enforce sequential completion: if attempting to mark this day completed,
-        // ensure previous day's task (if exists) is completed first.
-        if (status === 'completed' && currentStatus !== 'completed') {
-            const currentDay = interviewReport.preparationPlan[planIndex].day
-            const prev = interviewReport.preparationPlan.find(p => Number(p.day) === Number(currentDay) - 1)
-            if (prev && prev.status !== 'completed') {
-                return res.status(400).json({ message: 'Complete previous day before marking this day completed.' })
+        // ensure the previous day's task (if it exists) is completed first.
+        if (status === "completed" && currentStatus !== "completed") {
+            const prev = interviewReport.preparationPlan.find((p) => Number(p.day) === Number(planItem.day) - 1)
+            if (prev && prev.status !== "completed") {
+                return res.status(400).json({ message: "Complete previous day before marking this day completed." })
             }
         }
 
-        if (status) interviewReport.preparationPlan[planIndex].status = status
-        if (completedAt) interviewReport.preparationPlan[planIndex].completedAt = new Date(completedAt)
-        if (typeof estimatedTime !== 'undefined') interviewReport.preparationPlan[planIndex].estimatedTime = estimatedTime
+        if (status) planItem.status = status
+        if (completedAt) planItem.completedAt = new Date(completedAt)
+        if (typeof estimatedTime !== "undefined") planItem.estimatedTime = estimatedTime
 
-        if (status === 'completed' && currentStatus !== 'completed') {
-            interviewReport.skillGap = applySkillGapReduction(interviewReport.preparationPlan[planIndex], interviewReport.skillGap)
+        if (status === "completed" && currentStatus !== "completed") {
+            interviewReport.skillGap = applySkillGapReduction(planItem, interviewReport.skillGap)
         }
 
         await interviewReport.save()
@@ -263,8 +273,13 @@ const updateRoadmapProgress = async function (req, res) {
         return res.status(200).json({ message: "Roadmap progress updated", interviewReport })
     } catch (error) {
         console.error("updateRoadmapProgress error:", error)
-        res.status(500).json({ message: "Failed to update roadmap progress." })
+        return res.status(500).json({ message: "Failed to update roadmap progress." })
     }
 }
 
-module.exports = { generateReportInterviewController, getInterviewReportById, getAllInterviewReports, updateRoadmapProgress }
+module.exports = {
+    generateReportInterviewController,
+    getInterviewReportById,
+    getAllInterviewReports,
+    updateRoadmapProgress
+}

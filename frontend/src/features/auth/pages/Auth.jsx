@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router"
 import { useAuth } from "../hooks/useAuth.jsx"
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa6";
+import { useGoogleLogin } from "@react-oauth/google"
 
 const Auth = () => {
     const { handleLogin, handleRegister, loading } = useAuth();
@@ -54,6 +57,11 @@ const Auth = () => {
             }
         }
     }
+
+    const googleLogin = useGoogleLogin({
+        onSuccess: (tokenResponse) => console.log(tokenResponse),
+        onError: () => console.log("Google login failed")
+    })
 
     return (
         <>
@@ -236,13 +244,34 @@ const Auth = () => {
                                     ? (authMode === "login" ? "Logging in..." : "Signing up...")
                                     : (authMode === "login" ? "Log in" : "Sign up")}
                             </button>
-                        </form>
-                    </div>
+                            {/* Auth options*/}
 
-                    {/* Footer note */}
-                    <p className="text-center text-xs text-slate-600 mt-5">
-                        Built for modern interview preparation workflows.
-                    </p>
+                        </form>
+                        <div className="flex items-center gap-3 my-4">
+                            <div className="flex-1 h-px bg-slate-700"></div>
+                            <span className="text-xs font-semibold tracking-wider text-slate-400">OR CONTINUE WITH</span>
+                            <div className="flex-1 h-px bg-slate-700"></div>
+                        </div>
+                        {/* Social auth options */}
+                        <div className="flex gap-2.5 my-2.5">
+                            <button
+                                type="button"
+                                onClick={() => googleLogin()}
+                                className="flex-1 flex items-center justify-center gap-2.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+                                style={{ background: "rgba(15,23,42,0.7)", border: "1px solid rgba(51,65,85,0.7)", color: "#e2e8f0" }}
+                            >
+                                <FcGoogle size={20} /> Google
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => console.log("github")}
+                                className="flex-1 flex items-center justify-center gap-2.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+                                style={{ background: "rgba(15,23,42,0.7)", border: "1px solid rgba(51,65,85,0.7)", color: "#e2e8f0" }}
+                            >
+                                <FaGithub size={20} /> GitHub
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </main>
         </>

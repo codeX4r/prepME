@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth.jsx"
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa6";
 import { useGoogleLogin } from "@react-oauth/google"
+import { googleLoginApi } from "../auth.api.js";
 
 const Auth = () => {
     const { handleLogin, handleRegister, loading } = useAuth();
@@ -59,7 +60,15 @@ const Auth = () => {
     }
 
     const googleLogin = useGoogleLogin({
-        onSuccess: (tokenResponse) => console.log(tokenResponse),
+        flow: "auth-code",
+        onSuccess: async (tokenResponse) => {
+            try { // sending tokencode to backend
+                const response = await googleLoginApi(tokenResponse.code)
+            } catch (error) {
+                console.log(error);
+
+            }
+        },
         onError: () => console.log("Google login failed")
     })
 

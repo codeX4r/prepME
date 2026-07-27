@@ -2,6 +2,8 @@ const userModel = require("../model/user.model.js")
 const tokenBlacklistModel = require("../model/blacklist.model.js")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
+const { OAuth2Client } = require("google-auth-library")
+const axios = require("axios")
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY
 const getJwtSecretKey = () => {
@@ -10,6 +12,12 @@ const getJwtSecretKey = () => {
     }
     return JWT_SECRET_KEY
 }
+
+const client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    // process.env.GOOGLE_REDIRECT_URI
+)
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -182,9 +190,45 @@ async function getMeController(req, res) {
     }
 }
 
+async function googleLoginController(req, res) {
+    try {
+
+        const { code } = req.body;
+
+        // received tokens from the access code received
+
+        const { tokens } = await client.getToken({
+            code,
+            redirect_uri: "postmessage",
+        });
+
+        //getting profile from google using access tokens received
+        const googleResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
+            headers: { Authorization: `Bearer ${tokens.access_token}`, }
+        })
+        console.log(googleResponse.data)
+
+        if (googleResponse.verified_email) throw new error("the user is not verified by google")
+
+        let user = await userModel.find({
+            email: googleResponse.email
+        })
+
+
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
 module.exports = {
     registerUserController,
     loginUserController,
     logoutUserController,
-    getMeController
+    getMeController,
+    googleLoginController
 }

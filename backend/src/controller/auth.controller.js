@@ -41,9 +41,31 @@ const validateLoginData = ({ email, password }) => {
     return ""
 }
 
+function generateToken(user) {
+    return jwt.sign(
+        {
+            id: user._id,
+            username: user.username
+        },
+        getJwtSecretKey(),
+        {
+            expiresIn: "1d"
+        }
+    )
+}
+
+function sendToken(res, token) {
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000
+    })
+}
+
 async function registerUserController(req, res) {
     try {
-        console.log("registerUserController req.body:", req.body);
+        // console.log("registerUserController req.body:", req.body)
         const { username, email, password } = req.body;
         const validationError = validateRegisterData({ username, email, password })
         if (validationError) {
@@ -79,18 +101,9 @@ async function registerUserController(req, res) {
             password: hash
         })
 
-        const token = jwt.sign(
-            { id: user._id, username: user.username },
-            getJwtSecretKey(),
-            { expiresIn: "1d" }
-        )
+        const token = generateToken(user)
+        sendToken(res, token)
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 24 * 60 * 60 * 1000
-        })
         res.status(201).json({
             message: "User registered successfully",
             user: {
@@ -126,18 +139,9 @@ async function loginUserController(req, res) {
             })
         }
 
-        const token = jwt.sign(
-            { id: user._id, username: user.username },
-            getJwtSecretKey(),
-            { expiresIn: "1d" }
-        )
+        const token = generateToken(user)
+        sendToken(res, token)
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 24 * 60 * 60 * 1000
-        })
         res.status(200).json({
             message: "user logged in ",
             user: {
@@ -192,7 +196,7 @@ async function getMeController(req, res) {
 
 async function googleLoginController(req, res) {
     try {
-
+        console.log("Google Login Controller Hit");
         const { code } = req.body;
 
         // received tokens from the access code received
@@ -206,13 +210,42 @@ async function googleLoginController(req, res) {
         const googleResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
             headers: { Authorization: `Bearer ${tokens.access_token}`, }
         })
-        console.log(googleResponse.data)
+        // console.log(googleResponse.data)
+        const googleUser = googleResponse.data
+        if (!googleUser.verified_email) throw new Error("the user is not verified by google")
 
-        if (googleResponse.verified_email) throw new error("the user is not verified by google")
-
-        let user = await userModel.find({
-            email: googleResponse.email
+        let user = await userModel.findOne({
+            email: googleUser.email
         })
+
+        try {
+            if (!user) {
+                user = await userModel.create({
+                    provider: "google",
+                    email: googleUser.email,
+                    avatar: googleUser.picture,
+                    googleId: googleUser.id,
+                    isVerified: true,
+                    password: null,
+                    username: googleUser.email.split("@")[0].toLowerCase()
+                })
+            }
+
+            const token = generateToken(user)
+            sendToken(res, token)
+
+            return res.status(200).json({
+                message: "Google Login Successfull",
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email
+                }
+            })
+
+        } catch (error) {
+            console.log(error);
+        }
 
 
 
@@ -225,6 +258,7 @@ async function googleLoginController(req, res) {
         });
     }
 }
+
 module.exports = {
     registerUserController,
     loginUserController,

@@ -49,5 +49,5 @@ export async function getme() {
 
 // posting Google Auth Code to server for access
 export const googleLoginApi = (code) => {
-    return axios.post("/api/auth/google", { code })
+    return api.post("/api/auth/google", { code })
 }

@@ -64,6 +64,10 @@ const Auth = () => {
         onSuccess: async (tokenResponse) => {
             try { // sending tokencode to backend
                 const response = await googleLoginApi(tokenResponse.code)
+                console.log(response.data);
+                console.log("Before navigate");
+                navigate("/prepME");
+                console.log("After navigate");
             } catch (error) {
                 console.log(error);
 

@@ -1,6 +1,11 @@
 const mongoose = require("mongoose")
 
 const userSchema = new mongoose.Schema({
+    provider: {
+        type: String,
+        enum: ["local", "google"],
+        default: "local"
+    },
     username: {
         type: String,
         unique: [true, "username already taken"],
@@ -16,11 +21,19 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: function () { return this.provider === "local" }
     },
     isVerified: {
         type: Boolean,
         default: false
+    },
+    avatar: {
+        type: String,
+        required: false
+    },
+    googleID: {
+        type: String,
+        default: null
     },
     verificationToken: String,
     verificationTokenExpires: Date

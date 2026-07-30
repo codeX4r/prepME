@@ -1,33 +1,35 @@
-import { createBrowserRouter } from "react-router"
-import Auth from "./features/auth/pages/Auth.jsx"
-import { Secured } from "./features/auth/pages/Secured.jsx"
-import { Home } from "./features/interview/pages/Home.jsx"
-import InterviewReport from "./features/interview/pages/InterviewReport.jsx"
-import { LandingPage } from "./features/interview/pages/landing.jsx"
+import { createBrowserRouter } from "react-router";
+import {MainLayout} from "./layouts/MainLayout";
+import Auth from "./features/auth/pages/Auth.jsx";
+import { Secured } from "./features/auth/pages/Secured.jsx";
+import { Home } from "./features/interview/pages/Home.jsx";
+import InterviewReport from "./features/interview/pages/InterviewReport.jsx";
+import { LandingPage } from "./features/interview/pages/landing.jsx";
 
 export const router = createBrowserRouter([
     {
         path: "/",
-        element: <LandingPage />
+        element: <LandingPage />,
     },
     {
         path: "/auth",
-        element: <Auth />
+        element: <Auth />,
     },
     {
-        path: "/prepME",
         element: (
             <Secured>
-                <Home />
+                <MainLayout />
             </Secured>
-        )
+        ),
+        children: [
+            {
+                path: "/prepME",
+                element: <Home />,
+            },
+            {
+                path: "/interview/:interviewId",
+                element: <InterviewReport />,
+            },
+        ],
     },
-    {
-        path: "/interview/:interviewId",
-        element: (
-            <Secured>
-                <InterviewReport />
-            </Secured>
-        )
-    }
-])
+]);

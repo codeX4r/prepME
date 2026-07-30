@@ -28,7 +28,7 @@ export async function login({ email, password }) {
 export async function logout() {
 
     try {
-        const response = await api.get("/api/auth/logout")
+        const response = await api.post("/api/auth/logout")
         return response.data
 
     } catch (err) {
@@ -51,3 +51,4 @@ export async function getme() {
 export const googleLoginApi = (code) => {
     return api.post("/api/auth/google", { code })
 }
+

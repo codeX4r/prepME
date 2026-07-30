@@ -103,7 +103,7 @@ export const Resumeform = () => {
                 Background Glow
             ========================================= */}
 
-            <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none ">
 
                 <div className="absolute -top-30 -left-20 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
 

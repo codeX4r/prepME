@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router"
 import { useAuth } from "../hooks/useAuth.jsx"
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa6";
 import { useGoogleLogin } from "@react-oauth/google"
 import { googleLoginApi } from "../auth.api.js";
+import { AuthContext } from "../context/auth.context.jsx";
 
 const Auth = () => {
     const { handleLogin, handleRegister, loading } = useAuth();
@@ -14,6 +15,7 @@ const Auth = () => {
     const [password, setPassword] = useState("");
     const [authMode, setAuthMode] = useState("login");
     const [error, setError] = useState("");
+    // const [user, setUser] = useState({})
 
     const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
@@ -59,6 +61,8 @@ const Auth = () => {
         }
     }
 
+    const { setUser } = useContext(AuthContext)
+
     const googleLogin = useGoogleLogin({
         flow: "auth-code",
         onSuccess: async (tokenResponse) => {
@@ -66,6 +70,7 @@ const Auth = () => {
                 const response = await googleLoginApi(tokenResponse.code)
                 console.log(response.data);
                 console.log("Before navigate");
+                setUser(response.data.user)
                 navigate("/prepME");
                 console.log("After navigate");
             } catch (error) {

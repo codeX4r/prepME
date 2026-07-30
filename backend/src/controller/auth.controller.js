@@ -161,11 +161,23 @@ async function logoutUserController(req, res) {
         const token = req.cookies.token
 
         if (token) {
-            await tokenBlacklistModel.create({ token })
+            await tokenBlacklistModel.findOneAndUpdate(
+                { token },
+                { token },
+                { upsert: true }
+            )
         }
 
-        res.clearCookie("token")
-        res.status(200).json({ message: "user logged out successfully" })
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        })
+
+        res.status(200).json({
+            success: true,
+            message: "user logged out successfully"
+        })
     } catch (error) {
         console.error("logoutUserController error:", error)
         res.status(500).json({ message: "Logout failed due to server error." })

@@ -211,24 +211,24 @@ export default function InterviewReport() {
             </div>
 
             {/* Mobile Header Banner */}
-            <div className="lg:hidden w-full p-4 border-b border-slate-700/40 bg-slate-900/60 backdrop-blur-xl flex items-center justify-between sticky top-0 z-20">
+            {/* <div className="lg:hidden w-full p-4 border-b border-slate-700/40 bg-slate-900/60 backdrop-blur-xl flex items-center justify-between sticky top-0 z-20">
                 <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                     <span className="text-xs font-bold tracking-widest uppercase text-cyan-400">prep-ME</span>
                 </div>
-            </div>
+            </div> */}
 
             {/* Main Layout Grid */}
             <div className="relative flex flex-col lg:flex-row flex-1 lg:h-screen lg:overflow-hidden z-10">
 
                 {/* Left Navigation Sidebar */}
                 <aside className="w-full lg:w-56 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-slate-700/40 bg-slate-900/60 backdrop-blur-xl sticky lg:relative -top-px lg:top-0 z-20">
-                    <div className="hidden lg:block p-5 border-b border-slate-700/40">
+                    {/* <div className="hidden lg:block p-5 border-b border-slate-700/40">
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                             <span className="text-xs font-bold tracking-widest uppercase text-cyan-400">prep-ME</span>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Scrollable Navigation Items for Mobile viewports */}
                     <nav className="p-3 lg:p-4 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-1 lg:space-y-1-scrollbar-none shrink-0 minimal-scrollbar">

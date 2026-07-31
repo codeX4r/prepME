@@ -41,7 +41,7 @@ const validateLoginData = ({ email, password }) => {
     return ""
 }
 
-function generateToken(user) {
+function generateAccessToken(user) {
     return jwt.sign(
         {
             id: user._id,
@@ -49,7 +49,19 @@ function generateToken(user) {
         },
         getJwtSecretKey(),
         {
-            expiresIn: "1d"
+            expiresIn: process.env.JWT_ACCESS_EXPIRY
+        }
+    )
+}
+
+function generateRefreshToken(user) {
+    return jwt.sign(
+        {
+            id: user._id
+        },
+        process.env.JWT_REFRESH_SECRET,
+        {
+            expiresIn: process.env.JWT_REFRESH_EXPIRY
         }
     )
 }
@@ -101,7 +113,7 @@ async function registerUserController(req, res) {
             password: hash
         })
 
-        const token = generateToken(user)
+        const token = generateAccessToken(user)
         sendToken(res, token)
 
         res.status(201).json({
@@ -139,7 +151,12 @@ async function loginUserController(req, res) {
             })
         }
 
-        const token = generateToken(user)
+        const token = generateAccessToken(user)
+        const refreshToken = generateRefreshToken(user)
+
+        user.refreshToken = refreshToken
+        await user.save()
+
         sendToken(res, token)
 
         res.status(200).json({
@@ -153,6 +170,75 @@ async function loginUserController(req, res) {
     } catch (error) {
         console.error("loginUserController error:", error)
         res.status(500).json({ message: "Login failed due to server error." })
+    }
+}
+
+async function googleLoginController(req, res) {
+    try {
+        console.log("Google Login Controller Hit");
+        const { code } = req.body;
+
+        // received tokens from the access code received
+
+        const { tokens } = await client.getToken({
+            code,
+            redirect_uri: "postmessage",
+        });
+
+        //getting profile from google using access tokens received
+        const googleResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
+            headers: { Authorization: `Bearer ${tokens.access_token}`, }
+        })
+        // console.log(googleResponse.data)
+        const googleUser = googleResponse.data
+        if (!googleUser.verified_email) throw new Error("the user is not verified by google")
+
+        let user = await userModel.findOne({
+            email: googleUser.email
+        })
+
+        try {
+            if (!user) {
+                user = await userModel.create({
+                    provider: "google",
+                    email: googleUser.email,
+                    avatar: googleUser.picture,
+                    googleId: googleUser.id,
+                    isVerified: true,
+                    password: null,
+                    username: googleUser.email.split("@")[0].toLowerCase()
+                })
+            }
+
+            const token = generateAccessToken(user)
+            const refreshToken = generateRefreshToken(user)
+
+            user.refreshToken = refreshToken
+            await user.save()
+            sendToken(res, token)
+
+            return res.status(200).json({
+                message: "Google Login Successfull",
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email
+                }
+            })
+
+        } catch (error) {
+            console.log(error);
+        }
+
+
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
 }
 
@@ -206,70 +292,7 @@ async function getMeController(req, res) {
     }
 }
 
-async function googleLoginController(req, res) {
-    try {
-        console.log("Google Login Controller Hit");
-        const { code } = req.body;
 
-        // received tokens from the access code received
-
-        const { tokens } = await client.getToken({
-            code,
-            redirect_uri: "postmessage",
-        });
-
-        //getting profile from google using access tokens received
-        const googleResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
-            headers: { Authorization: `Bearer ${tokens.access_token}`, }
-        })
-        // console.log(googleResponse.data)
-        const googleUser = googleResponse.data
-        if (!googleUser.verified_email) throw new Error("the user is not verified by google")
-
-        let user = await userModel.findOne({
-            email: googleUser.email
-        })
-
-        try {
-            if (!user) {
-                user = await userModel.create({
-                    provider: "google",
-                    email: googleUser.email,
-                    avatar: googleUser.picture,
-                    googleId: googleUser.id,
-                    isVerified: true,
-                    password: null,
-                    username: googleUser.email.split("@")[0].toLowerCase()
-                })
-            }
-
-            const token = generateToken(user)
-            sendToken(res, token)
-
-            return res.status(200).json({
-                message: "Google Login Successfull",
-                user: {
-                    id: user._id,
-                    username: user.username,
-                    email: user.email
-                }
-            })
-
-        } catch (error) {
-            console.log(error);
-        }
-
-
-
-    } catch (error) {
-        console.error(error);
-
-        return res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-    }
-}
 
 module.exports = {
     registerUserController,

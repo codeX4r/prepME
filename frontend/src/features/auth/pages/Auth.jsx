@@ -249,6 +249,10 @@ const Auth = () => {
                                     value={password}
                                     onChange={(e) => { setPassword(e.target.value); setError(""); }}
                                 />
+                                {/* forgot password */}
+                                {authMode === "login" ? <span onClick={() => {
+                                    console.log("forgot");
+                                }} className="text-xs font-semibold tracking-wider text-slate-400">Forgot Password ? </span> : <span></span>}
                             </div>
 
                             {/* Submit */}
@@ -262,6 +266,7 @@ const Auth = () => {
                                     ? (authMode === "login" ? "Logging in..." : "Signing up...")
                                     : (authMode === "login" ? "Log in" : "Sign up")}
                             </button>
+
                             {/* Auth options*/}
 
                         </form>

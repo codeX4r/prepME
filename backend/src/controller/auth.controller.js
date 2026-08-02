@@ -4,13 +4,14 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const { OAuth2Client } = require("google-auth-library")
 const axios = require("axios")
+const crypto = require("crypto")
 
-const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET
 const getJwtSecretKey = () => {
-    if (!JWT_SECRET_KEY) {
-        throw new Error("JWT_SECRET_KEY is not configured.")
+    if (!JWT_ACCESS_SECRET) {
+        throw new Error("JWT_ACCESS_SECRET is not configured.")
     }
-    return JWT_SECRET_KEY
+    return JWT_ACCESS_SECRET
 }
 
 const client = new OAuth2Client(
@@ -66,12 +67,12 @@ function generateRefreshToken(user) {
     )
 }
 
-function sendToken(res, token) {
-    res.cookie("token", token, {
+function sendToken(res, name, token, maxAge) {
+    res.cookie(name, token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge
     })
 }
 
@@ -113,8 +114,14 @@ async function registerUserController(req, res) {
             password: hash
         })
 
-        const token = generateAccessToken(user)
-        sendToken(res, token)
+        const accessToken = generateAccessToken(user)
+        sendToken(res, "accessToken", accessToken, 15 * 60 * 1000)
+
+        // email verification token
+        const emailVerificationToken = crypto.randomBytes(32).toString("hex")
+        user.emailVerificationToken = emailVerificationToken
+        user.emailVerificationExpiry = new Date(Date.now() + 15 * 60 * 1000)
+        user.save()
 
         res.status(201).json({
             message: "User registered successfully",
@@ -151,13 +158,14 @@ async function loginUserController(req, res) {
             })
         }
 
-        const token = generateAccessToken(user)
+        const accessToken = generateAccessToken(user)
         const refreshToken = generateRefreshToken(user)
 
         user.refreshToken = refreshToken
         await user.save()
 
-        sendToken(res, token)
+        sendToken(res, "accessToken", accessToken, 15 * 60 * 1000)
+        sendToken(res, "refreshToken", refreshToken, 24 * 60 * 60 * 1000)
 
         res.status(200).json({
             message: "user logged in ",
@@ -175,7 +183,6 @@ async function loginUserController(req, res) {
 
 async function googleLoginController(req, res) {
     try {
-        console.log("Google Login Controller Hit");
         const { code } = req.body;
 
         // received tokens from the access code received
@@ -210,12 +217,13 @@ async function googleLoginController(req, res) {
                 })
             }
 
-            const token = generateAccessToken(user)
+            const accessToken = generateAccessToken(user)
             const refreshToken = generateRefreshToken(user)
 
             user.refreshToken = refreshToken
             await user.save()
-            sendToken(res, token)
+            sendToken(res, "accessToken", accessToken, 15 * 60 * 1000)
+            sendToken(res, "refreshToken", refreshToken, 24 * 60 * 60 * 1000)
 
             return res.status(200).json({
                 message: "Google Login Successfull",
@@ -244,7 +252,7 @@ async function googleLoginController(req, res) {
 
 async function logoutUserController(req, res) {
     try {
-        const token = req.cookies.token
+        const token = req.cookies.accessToken
 
         if (token) {
             await tokenBlacklistModel.findOneAndUpdate(
@@ -254,11 +262,19 @@ async function logoutUserController(req, res) {
             )
         }
 
-        res.clearCookie("token", {
+        res.clearCookie("accessToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
         })
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        })
+
+        // user.refreshToken = null;
+        // await user.save();
 
         res.status(200).json({
             success: true,
@@ -292,12 +308,50 @@ async function getMeController(req, res) {
     }
 }
 
+async function refreshTokenController(req, res) {
 
+    const refreshToken = req.cookies.refreshToken
+
+    if (!refreshToken) {
+        return res.status(401).json({
+            message: "RefreshToken is missing"
+        })
+    }
+
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+
+        const user = await userModel.findById(decoded.id)
+
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid refresh token"
+            });
+        }
+
+        if (user.refreshToken !== refreshToken) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid refresh token"
+            });
+        }
+
+        const accessToken = generateAccessToken(user)
+
+        sendToken(res, "accessToken", accessToken, 15 * 60 * 1000)
+
+        return res.status(200).json({ sucess: true, message: "acessesToken refreshed sucessfully" })
+
+    } catch (error) {
+        return res.status(401).json({ success: false, message: "invalid response or refreshToken expired" })
+    }
+}
 
 module.exports = {
     registerUserController,
     loginUserController,
     logoutUserController,
     getMeController,
-    googleLoginController
+    googleLoginController,
+    refreshTokenController
 }

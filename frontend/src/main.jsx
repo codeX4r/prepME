@@ -9,15 +9,15 @@ import "./style.css"
 import { Header } from './header/Header.jsx';
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <AuthProvider >
-        <InterviewProvider>
-          <App />
-        </InterviewProvider>
-      </AuthProvider>
-    </GoogleOAuthProvider>
-  </StrictMode>
+  // <StrictMode>
+  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <AuthProvider >
+      <InterviewProvider>
+        <App />
+      </InterviewProvider>
+    </AuthProvider>
+  </GoogleOAuthProvider>
+  // </StrictMode>
 
 
 )

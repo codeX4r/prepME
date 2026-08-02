@@ -33,6 +33,7 @@ export async function logout() {
 
     } catch (err) {
         console.log(err);
+        throw err
     }
 }
 
@@ -44,6 +45,8 @@ export async function getme() {
 
     } catch (err) {
         console.log(err);
+        throw err
+
     }
 }
 
@@ -52,3 +55,39 @@ export const googleLoginApi = (code) => {
     return api.post("/api/auth/google", { code })
 }
 
+api.interceptors.response.use(
+
+    (response) => response,
+
+    async (error) => {
+
+        const originalRequest = error.config;
+
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            originalRequest.url !== "/api/auth/refresh-token"
+        ) {
+
+            originalRequest._retry = true;
+
+            try {
+
+                await api.post("/api/auth/refresh-token");
+
+                const response = await api(originalRequest);
+
+                return response;
+
+            } catch (refreshError) {
+
+                return Promise.reject(refreshError);
+            }
+
+        }
+
+        return Promise.reject(error);
+
+    }
+
+);

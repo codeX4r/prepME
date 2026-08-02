@@ -11,5 +11,6 @@ authRouter.post("/login", authController.loginUserController)
 authRouter.post("/logout", authController.logoutUserController)
 authRouter.get("/get-me", authMiddleware, authController.getMeController)
 authRouter.post("/google", authController.googleLoginController)
+authRouter.post("/refresh-token", authController.refreshTokenController)
 
 module.exports = authRouter

@@ -6,6 +6,7 @@ const app = express()
 
 const authRouter = require("./router/auth.routes.js")
 const interviewRouter = require("./router/interview.routes.js")
+const emailRouter = require('./router/email.routes.js')
 
 const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173"
 
@@ -29,6 +30,7 @@ app.use(cookieParser())
 
 app.use("/api/auth", authRouter)
 app.use("/api/interview", interviewRouter)
+app.use("/api/email", emailRouter)
 
 app.use((req, res) => {
     res.status(404).json({ message: "Route not found." })

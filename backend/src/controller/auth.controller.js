@@ -7,8 +7,14 @@ const axios = require("axios")
 const crypto = require("crypto")
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET
+
+const { sendEmail } = require("../services/email.service.js")
+
+
 const getJwtSecretKey = () => {
     if (!JWT_ACCESS_SECRET) {
+        const { BrevoClient } = require("@getbrevo/brevo")
+
         throw new Error("JWT_ACCESS_SECRET is not configured.")
     }
     return JWT_ACCESS_SECRET
@@ -119,12 +125,23 @@ async function registerUserController(req, res) {
 
         // email verification token
         const emailVerificationToken = crypto.randomBytes(32).toString("hex")
-        user.emailVerificationToken = emailVerificationToken
+        const hashedToken = crypto.createHash("sha256").update(emailVerificationToken).digest("hex")
+        user.emailVerificationToken = hashedToken
         user.emailVerificationExpiry = new Date(Date.now() + 15 * 60 * 1000)
-        user.save()
+        await user.save()
+
+        const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${emailVerificationToken}`
+
+        const subject = "Verify your email"
+
+        console.log("Verification URL:", verificationUrl);
+
+        await sendEmail({ to: email, subject, url: verificationUrl })
+
+        console.log("Email sent successfully");
 
         res.status(201).json({
-            message: "User registered successfully",
+            message: "User registered successfully, Please Verify your email",
             user: {
                 id: user._id,
                 username: user.username,
@@ -196,7 +213,7 @@ async function googleLoginController(req, res) {
         const googleResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
             headers: { Authorization: `Bearer ${tokens.access_token}`, }
         })
-        // console.log(googleResponse.data)
+        console.log(googleResponse.data)
         const googleUser = googleResponse.data
         if (!googleUser.verified_email) throw new Error("the user is not verified by google")
 
@@ -210,9 +227,10 @@ async function googleLoginController(req, res) {
                     provider: "google",
                     email: googleUser.email,
                     avatar: googleUser.picture,
-                    googleId: googleUser.id,
+                    googleID: googleUser.id,
                     isVerified: true,
                     password: null,
+                    isEmailVerified: true,
                     username: googleUser.email.split("@")[0].toLowerCase()
                 })
             }

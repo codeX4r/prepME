@@ -1,12 +1,29 @@
-import { BrevoClient } from '@getbrevo/brevo';
+import { BrevoClient } from "@getbrevo/brevo";
 
-const brevo = new BrevoClient({ apiKey: 'your-api-key' });
-
-const result = await brevo.transactionalEmails.sendTransacEmail({
-    subject: 'Hello from Brevo!',
-    htmlContent: '<html><body><p>Hello,</p><p>This is my first transactional email.</p></body></html>',
-    sender: { name: 'Alex from Brevo', email: 'hello@brevo.com' },
-    to: [{ email: 'johndoe@example.com', name: 'John Doe' }],
+const brevo = new BrevoClient({
+    apiKey: process.env.BREVO_API_KEY,
 });
 
-console.log('Email sent. Message ID:', result.messageId);
+import { verifyEmailTemplate } from "../templates/verifyEmail.template.js"
+
+export const sendEmail = async ({ to, subject, url }) => {
+
+    console.log("Sending verification email...");
+
+    return await brevo.transactionalEmails.sendTransacEmail({
+        sender: {
+            name: process.env.MAIL_FROM_NAME,
+            email: process.env.MAIL_FROM,
+        },
+
+        to: [
+            {
+                email: to,
+            },
+        ],
+
+        subject,
+
+        htmlContent: verifyEmailTemplate(url),
+    });
+};

@@ -6,12 +6,12 @@ export function MainLayout() {
     const navigate = useNavigate();
 
     async function handleLogout() {
-        console.log(" 1 logout clicked")
+        // console.log(" 1 logout clicked")
         try {
             const res = await logout();
-            console.log(" 2 API success", res);
+            // console.log(" 2 API success", res);
             navigate("/auth", { replace: true });
-            console.log("3 navigate called");
+            // console.log("3 navigate called");
 
         } catch (err) {
             console.error(err);

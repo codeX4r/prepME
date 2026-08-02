@@ -91,3 +91,8 @@ api.interceptors.response.use(
     }
 
 );
+// token from backend
+export const getEmailVerificationToken = () => {
+    return api.get("/api/email/verify-email/:token")
+
+}

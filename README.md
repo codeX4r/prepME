@@ -5,7 +5,10 @@ PrepMe is an AI-powered interview preparation platform that helps students impro
 > 🚧 **Project Status:** Actively under development.
 
 ---
+## Home Page
 
+![Home Page](Screenshots/landing.png)
+![Flow ](Screenshots/process.png)
 # ✨ Features
 
 ## 🔐 Authentication
@@ -21,6 +24,7 @@ PrepMe is an AI-powered interview preparation platform that helps students impro
 ---
 
 ## 🤖 AI Resume Analysis
+![🤖 AI Resume Analysis](Screenshots/form.png)
 - Resume Upload
 - AI-powered Resume Analysis
 - Resume Scoring
@@ -30,6 +34,8 @@ PrepMe is an AI-powered interview preparation platform that helps students impro
 ---
 
 ## 📚 Interview Preparation
+![📚 Interview Preparation](Screenshots/tech.png)
+![📚 Interview Preparation](Screenshots/behav.png)
 - Technical Interview Questions
 - Behavioral Interview Questions
 - Personalized Preparation Roadmap
@@ -38,6 +44,7 @@ PrepMe is an AI-powered interview preparation platform that helps students impro
 ---
 
 ## 📊 Progress Tracking
+![📊 Progress Tracking](Screenshots/roadmap.png)
 - Track roadmap completion
 - Monitor learning progress
 - Resume analysis history

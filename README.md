@@ -95,6 +95,16 @@ PrepMe is an AI-powered interview preparation platform that helps students impro
 
 ---
 
+## 🏗 Development Methodology
+
+This project follows an **Agile Iterative & Incremental Development** approach. Features are developed, tested, and integrated incrementally, enabling continuous improvement, easier maintenance, and scalable development.
+
+**Development Flow:**
+
+```text
+Planning → Design → Development → Testing → Integration → Enhancement
+```
+
 # 📁 Project Structure
 
 ```text

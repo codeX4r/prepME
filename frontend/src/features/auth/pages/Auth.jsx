@@ -68,11 +68,11 @@ const Auth = () => {
         onSuccess: async (tokenResponse) => {
             try { // sending tokencode to backend
                 const response = await googleLoginApi(tokenResponse.code)
-                console.log(response.data);
-                console.log("Before navigate");
+                // console.log(response.data);
+                // console.log("Before navigate");
                 setUser(response.data.user)
                 navigate("/prepME");
-                console.log("After navigate");
+                // console.log("After navigate");
             } catch (error) {
                 console.log(error);
 
@@ -251,8 +251,8 @@ const Auth = () => {
                                 />
                                 {/* forgot password */}
                                 {authMode === "login" ? <span onClick={() => {
-                                    console.log("forgot");
-                                }} className="text-xs font-semibold tracking-wider text-slate-400">Forgot Password ? </span> : <span></span>}
+                                    navigate("/forgot-password")
+                                }} className="text-xs font-semibold tracking-wider text-slate-400 hover:cursor-pointer">Forgot Password ? </span> : <span></span>}
                             </div>
 
                             {/* Submit */}

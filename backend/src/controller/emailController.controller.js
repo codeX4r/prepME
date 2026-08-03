@@ -43,4 +43,8 @@ async function verifyEmailToken(req, res) {
     }
 }
 
-module.exports = { verifyEmailToken };
+async function forgotPassword(req, res) {
+
+}
+
+module.exports = { verifyEmailToken, forgotPassword };

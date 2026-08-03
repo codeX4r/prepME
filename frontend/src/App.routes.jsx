@@ -6,6 +6,7 @@ import { Home } from "./features/interview/pages/Home.jsx";
 import InterviewReport from "./features/interview/pages/InterviewReport.jsx";
 import { LandingPage } from "./features/interview/pages/landing.jsx";
 import { VerifyEmailPage } from "./features/auth/pages/VerifyEmailPage.jsx";
+import { ForgotPassword } from "./features/auth/pages/ForgotPassword.jsx";
 
 export const router = createBrowserRouter([
     {
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
     {
         path: "/auth",
         element: <Auth />,
+    },
+    {
+        path: "/forgot-password",
+        element: <ForgotPassword />,
     },
     {
         element: (
